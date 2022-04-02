@@ -69,7 +69,8 @@ var platforms;
 var player;
 var cursors;
 var stars;
-
+var score = 0;
+var scoreText;
 
 function create(){
     this.add.image(400,300,'sky');
@@ -106,11 +107,42 @@ function create(){
         frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
         frameRate: 10,
         repeat: -1
+
     });
 
     cursors = this.input.keyboard.createCursorKeys();
 
     this.physics.add.collider(player, platforms);
+
+
+    // The process is similar to when we created the platforms Group. As we need the stars to move and bounce we create a dynamic physics group instead of a static one.
+
+
+    stars = this.physics.add.group({
+        key: 'star',
+        repeat: 11,
+        setXY: { x: 12, y: 0, stepX:70}
+    });
+    stars.children.iterate(function (child) {
+
+        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+
+    });
+
+    //If we were to run the code like it is now the stars would fall through the bottom of the game and out of sight. To stop that we need to check for their collision against the platforms. We can use another Collider object to do this:
+    this.physics.add.collider(stars, platforms);
+
+    //As well as doing this we will also check to see if the player overlaps with a star or not:
+    this.physics.add.overlap(player, stars, collectStar, null, this);
+
+    // This tells Phaser to check for an overlap between the player and any star in the stars Group. If found then they are passed to the 'collectStar' function:
+    function collectStar (player, star)
+    {
+        star.disableBody(true, true);
+        score += 10;
+        scoreText.setText('Score: ' + score);
+    }
+    scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 }
 
 
